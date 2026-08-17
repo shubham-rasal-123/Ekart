@@ -75,9 +75,16 @@ pipeline {
         }
         stage('EKS and Kubectl configuration') {
             steps {
-                script {
-                    sh "aws eks update-kubeconfig --region ap-south-1 --name eks-cluster"
-                }
+  //              script {
+                sh '''
+                    aws eks update-kubeconfig \
+                     --region ap-south-1 \
+                     --name eks-cluster
+
+                    kubectl get nodes
+                '''
+//                    sh "aws eks update-kubeconfig --region ap-south-1 --name eks-cluster"
+//               }
             }
         }
         stage('Deploy to k8s') {
