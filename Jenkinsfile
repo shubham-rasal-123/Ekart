@@ -65,26 +65,16 @@ pipeline {
             steps {
                 script {
                     withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
-                        retry(3) {
-                            sh "echo ${dockerhubpwd} | docker login -u shubhya --password-stdin"
-                            sh "docker push shubhya/ekart:latest"
+                        sh "docker login -u shubhya -p ${dockerhubpwd}"}
+                        sh "docker push shubhya/ekart:latest"
                         }
                     }
                 }
-            }
-        }
         stage('EKS and Kubectl configuration') {
             steps {
-  //              script {
-                sh '''
-                    aws eks update-kubeconfig \
-                     --region ap-south-1 \
-                     --name eks-cluster
-
-                    kubectl get nodes
-                '''
-//                    sh "aws eks update-kubeconfig --region ap-south-1 --name eks-cluster"
-//               }
+                script {
+                    sh "aws eks update-kubeconfig --region ap-south-1 --name eks-cluster"
+               }
             }
         }
         stage('Deploy to k8s') {
