@@ -67,9 +67,9 @@ pipeline {
                     withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
                         sh "docker login -u shubhya -p ${dockerhubpwd}"}
                         sh "docker push shubhya/ekart:latest"
-                        }
-                    }
                 }
+            }
+        }
         stage('EKS and Kubectl configuration') {
             steps {
                 script {
