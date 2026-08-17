@@ -1,35 +1,29 @@
 pipeline {
     agent any
-
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
         NVD_API_KEY = credentials('nvd-api-key')  
     }
-
     tools {
         maven 'maven3'
         jdk 'jdk-17'
     }
-
     stages {
         stage('git checkout') {
             steps {
                 git branch: 'master', url: 'https://github.com/shubham-rasal-123/Ekart.git'
             }
         }
-
         stage('compile') {
             steps {
                 sh "mvn compile"
             }
         }
-
         stage('unit tests') {
             steps {
                 sh "mvn test -DskipTests=true"
             }
         }
-
         stage('SonarQube analysis') {
             steps {
                 withSonarQubeEnv('sonar-scanner') {
@@ -40,22 +34,19 @@ pipeline {
                 }
             }
         }
-
         stage('OWASP Dependency Check') {
             steps {
-                  withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
+                withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
                     dependencyCheck additionalArguments: "--nvdApiKey=$NVD_API_KEY",
                                     odcInstallation: 'DC'
-             }
+                }
+            }
         }
-        }
-
         stage('Build') {
             steps {
                 sh "mvn package -DskipTests=true"
             }
         }
-
         stage('deploy to Nexus') {
             steps {
                 withMaven(globalMavenSettingsConfig: 'global-maven', jdk: 'jdk-17', maven: 'maven3', mavenSettingsConfig: '', traceability: true) {
@@ -63,40 +54,36 @@ pipeline {
                 }
             }
         }
-        
-
         stage('build and Tag docker image') {
             steps {
                 script {
-                        sh "docker build -t shubhya/ekart:latest -f docker/Dockerfile ."
+                    sh "docker build -t shubhya/ekart:latest -f docker/Dockerfile ."
+                }
+            }
+        }
+        stage('Push image to Hub') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
+                        sh "docker login -u shubhya -p ${dockerhubpwd}"
+                        sh "docker push shubhya/ekart:latest"
                     }
-            }
-        }
-
-        stage('Push image to Hub'){
-            steps{
-                script{
-                   withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
-                   sh 'docker login -u shubhya -p $ {dockerhubpwd} '
-                   sh 'docker push shubhya/ekart:latest'
                 }
             }
         }
-        stage('EKS and Kubectl configuration'){
-            steps{
-                script{
-                    sh 'aws eks update-kubeconfig --region ap-south-1 --name eks-cluster'
+        stage('EKS and Kubectl configuration') {
+            steps {
+                script {
+                    sh "aws eks update-kubeconfig --region ap-south-1 --name eks-cluster"
                 }
             }
         }
-        stage('Deploy to k8s'){
-            steps{
-                script{
-                    sh 'kubectl apply -f deploymentservice.yml'
+        stage('Deploy to k8s') {
+            steps {
+                script {
+                    sh "kubectl apply -f deploymentservice.yml"
                 }
             }
         }
     }
-
-}
 }
