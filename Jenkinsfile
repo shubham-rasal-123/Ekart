@@ -38,7 +38,7 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
                     dependencyCheck additionalArguments: "--nvdApiKey=$NVD_API_KEY",
-                                    odcInstallation: 'DC'
+                                    odcInstallation: 'DC';
                 }
             }
         }
@@ -64,10 +64,11 @@ pipeline {
         stage('Push image to Hub') {
             steps {
                 script {
-            withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
-                retry(3) {
-                    sh "echo ${dockerhubpwd} | docker login -u shubhya --password-stdin"
-                    sh "docker push shubhya/ekart:latest"
+                    withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
+                        retry(3) {
+                            sh "echo ${dockerhubpwd} | docker login -u shubhya --password-stdin"
+                            sh "docker push shubhya/ekart:latest"
+                        }
                     }
                 }
             }
