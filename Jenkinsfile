@@ -1,5 +1,6 @@
 pipeline {
     agent any
+
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
         NVD_API_KEY = credentials('nvd-api-key')  
@@ -65,22 +66,22 @@ pipeline {
             steps {
                 script {
                     withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
-                        sh "docker login -u shubhya -p ${dockerhubpwd}"}
-                        sh "docker push shubhya/ekart:latest"
+                        sh 'docker login -u shubhya -p ${dockerhubpwd}'}
+                        sh 'docker push shubhya/ekart:latest'
                 }
             }
         }
         stage('EKS and Kubectl configuration') {
             steps {
                 script {
-                    sh "aws eks update-kubeconfig --region ap-south-1 --name eks-cluster"
-               }
+                    sh 'aws eks update-kubeconfig --region ap-south-1 --name eks-cluster'
+                }
             }
         }
         stage('Deploy to k8s') {
             steps {
                 script {
-                    sh "kubectl apply -f deploymentservice.yml"
+                    sh 'kubectl apply -f deploymentservice.yml'
                 }
             }
         }
